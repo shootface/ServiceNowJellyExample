@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">	
+	<g2:evaluate object="true" var="jvar_gr" jelly="true">
+		var casegr = new GlideRecord("sn_imt_tracing_case_task");
+		casegr.addQuery("exposure_case",current.sys_id);
+		casegr.query();
+		var taskList = "";
+		while(casegr.next()){
+			taskList=taskList+casegr.sys_id+",";
+		}
+		gs.info(taskList);
+		var gr = new GlideRecord("asmt_assessment_instance");
+		gr.addQuery('trigger_id','IN',taskList);
+		gr.query();
+		gs.info(gr.getRowCount());
+		gr;
+	</g2:evaluate>
+	<table id="customers">
+		<thead>
+			<tr>
+			  <th scope="col">Survey</th>
+			  <th scope="col">Answer</th>
+			</tr>
+		</thead>
+		<tbody>
+			<j2:while test="$[jvar_gr.next()]">
+				<j2:set var="jvar_metric" value="$[jvar_gr.getValue('metric_type')]"/>
+				<g2:evaluate object="true" var="jvar_name" jelly="true">
+					var metricgr = new GlideRecord("asmt_metric_type");
+					gs.info(jelly.jvar_metric);
+					metricgr.get(jelly.jvar_metric);
+					gs.info(metricgr.name);
+					var name = metricgr.name;
+					name;
+				</g2:evaluate>
+					<tr>
+						<td>$[jvar_name]</td>
+						<td>
+							<input type="button" onclick="showSurvey('$[jvar_gr.getValue('sys_id')]','$[jvar_gr.getValue('metric_type')]');" value="view"></input> 
+						</td>
+					</tr>
+			</j2:while>	
+		</tbody>
+	</table>
+	<script language="javascript">
+		function showSurvey(id,type){
+
+	var urlAns = 'assessment_take2.do?sysparm_assessable_sysid='+id+'$[AMP]sysparm_assessable_type='+type+'$[AMP]sysparm_reader_view=true';
+		var d = new GlideOverlay({
+		title: "User's Response",
+		iframe: urlAns,
+		width:'80%',
+		height: '100%',
+		onAfterLoad: function() {
+			var iframe = d.getIFrameElement();
+			setTimeout(function(){
+				iframe.height = parseInt(iframe.height)+1;
+			},0);
+        }
+	});
+	d.render();
+} 
+	</script>
+	<style>
+#customers {
+  font-family: Arial, Helvetica, sans-serif;
+  width: 60%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#customers td, #customers th {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+#customers tr:nth-child(even){background-color: #f2f2f2;}
+
+#customers tr:hover {background-color: #ddd;}
+
+#customers th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #04AA6D;
+  color: white;
+}
+</style>
+</j:jelly>
